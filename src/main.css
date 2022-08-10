@@ -9,6 +9,16 @@ h1, h2, h3, h4, h5, p, figure, picture {
     margin: 0;
 }
 
+p {
+    text-align: center;
+}
+
+h3 {
+    font-weight: normal;
+    font-size: 1rem;
+    text-align: center;
+}
+
 .page {
     height: 100vh;
     width: 100vw;
@@ -26,21 +36,67 @@ h1, h2, h3, h4, h5, p, figure, picture {
 
 }
 
-.cont {
+.main {
     display: flex;
     flex-flow: column;
     flex: 1 1 auto;
 }
 
+.cont {
+    height: 100%;
+    max-width: 100%;
+    margin: 0 10% 0 10%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
 .maps {
     display: flex;
-    align-items: center;
     justify-content: center;
-    width: 50%;
-    height: 100%;
+    align-items: center;
+}
+
+.weather {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 2fr 3fr 3fr 3fr 3fr;
+    grid-template-areas: 
+    "temp temp" 
+    "sunr suns"
+    "wind flslike"
+    "pres humid"
+    "tzone vbility";
+}
+
+#tempnum {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    margin-left: 0.7rem;
+}
+
+.temp {
+    grid-area: temp;
+}
+
+.desc {
+    grid-area: desc;
 }
 
 #map {
     width: 80%;
     height: 80%;
 }
+
+#sunr{
+    grid-area: sunr;
+}
+
+#suns{
+    grid-area: suns;
+}
+

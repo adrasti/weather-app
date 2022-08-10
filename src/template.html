@@ -10,19 +10,55 @@
 <body>
     <div class="page">
         <div class="text"></div>
-        <div class="cont">
-            <div class="maps">
-                <div id="map"></div>
+        <div class="main">
+            <div class="cont">
+                <div class="maps">
+                    <div id="map"></div>
+                </div>
+                <div class="weather">
+                    <div class="temp">
+                        <p id = "tempnum"></p>
+                        <p id="state"></p>
+                    </div>
+                    <div id = "sunr">
+                        <p>—</p>
+                        <h3>sunrise</h3>
+                    </div>
+                    <div id = "suns">
+                        <p>—</p>
+                        <h3>sunset</h3>
+                    </div>
+                    <div id="wind">
+                        <p>—</p>
+                        <h3>wind</h3>
+                    </div>
+                    <div id="flslike">
+                        <p>—</p>
+                        <h3>feels like</h3>
+                    </div>
+                    <div id="pres">
+                        <p>—</p>
+                        <h3>pressure</h3>
+                    </div>
+                    <div id="humid">
+                        <p>—</p>
+                        <h3>humidity</h3>
+                    </div>
+                    <div id="tzone">
+                        <p>—</p>
+                        <h3>time zone</h3>
+                    </div>
+                    <div id="vbility">
+                        <p>—</p>
+                        <h3>visibility</h3>
+                    </div>
+                </div>
             </div>
-            <div class="weather"></div>
         </div>
     </div>
     <script type="text/javascript" src="https://api-maps.yandex.ru/2.1/?apikey=d2fcfcfc-0a1f-4563-b55d-8386a2084304&lang=en_RU"></script>
     <script>
-
-        const tit = document.querySelector(".text");
         ymaps.ready(init);
-
         function init(){
             // Создание карты.
         myMap = new ymaps.Map("map", {
@@ -49,7 +85,7 @@
                     ].join(', ') + '</p>',
                 contentFooter:'<sup>Щелкните еще раз</sup>'
             });
-            getW(coords[1], coords[0], tit);
+            getW(coords[1], coords[0]);
         }
         else {
             myMap.balloon.close();
@@ -62,9 +98,10 @@
         });
         } //key c1ae969295473bf23abb9854d63dc1ee
 
-        async function getW (lon, lat, tit){
+        async function getW (lon, lat){
             const ie = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=c1ae969295473bf23abb9854d63dc1ee`, {mode: 'cors'});
             const j = await ie.json()
+            const tit = document.querySelector(".text");
             let place = ''
             if(j.name){
                 place += j.name;
@@ -77,7 +114,32 @@
                 place = place + ', ' + ctr[0].name.common;
             } 
             tit.textContent = place;
-};
+            document.querySelector("#tempnum").textContent = String((Number(j.main.temp) - 273.15).toFixed(1)) + "°";
+            document.querySelector("#state").textContent = j.weather[0].description;
+
+            let zone;
+            if(Number(j.timezone) >= 0){
+                zone = 'GMT+' + String((Number(j.timezone) / 3600).toFixed(0));
+            } else {
+                zone = 'GMT' + String((Number(j.timezone) / 3600).toFixed(0));
+            }
+
+
+
+            document.querySelector("#sunr p").textContent = convertTime(j.sys.sunrise, j.timezone);
+            document.querySelector("#suns p").textContent = convertTime(j.sys.sunset, j.timezone);
+            document.querySelector("#wind p").textContent = String(j.wind.speed) + " meter/sec";
+            document.querySelector("#flslike p").textContent = String((Number(j.main.feels_like) - 273.15).toPrecision(3)) + "°";
+            document.querySelector("#pres p").textContent = String((Number(j.main.pressure) * 0.02953).toFixed(1)) + " inHg"
+            document.querySelector("#humid p").textContent = String(j.main.humidity) + "%";
+            document.querySelector("#tzone p").textContent = zone;
+            document.querySelector("#vbility p").textContent = String((Number(j.visibility) / 1000).toFixed(1)) + " km";
+        };
+        function convertTime(unixTime, tZone){
+            var myDate = new Date( (unixTime + tZone - 10800)*1000);
+            return myDate.toString().slice(16, 24);
+        }
+
     </script>
 </body>
 </html> 
