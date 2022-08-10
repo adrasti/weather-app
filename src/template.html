@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <base href=".">
+</head>
+<body>
+    <div class="page">
+        <div class="text"></div>
+        <div class="cont">
+            <div class="maps">
+                <div id="map"></div>
+            </div>
+            <div class="weather"></div>
+        </div>
+    </div>
+    <script type="text/javascript" src="https://api-maps.yandex.ru/2.1/?apikey=d2fcfcfc-0a1f-4563-b55d-8386a2084304&lang=en_RU"></script>
+    <script>
+
+        const tit = document.querySelector(".text");
+        ymaps.ready(init);
+
+        function init(){
+            // Создание карты.
+        myMap = new ymaps.Map("map", {
+        center: [55.7558, 37.6173],
+        zoom: 2
+        }, {
+        balloonMaxWidth: 200,
+        searchControlProvider: 'yandex#search'
+        });
+
+        myMap.options.set('dragCursor', 'pointer');
+        // Обработка события, возникающего при щелчке
+        // левой кнопкой мыши в любой точке карты.
+        // При возникновении такого события откроем балун.
+        myMap.events.add('click', function (e) {
+        if (!myMap.balloon.isOpen()) {
+            var coords = e.get('coords');
+            myMap.balloon.open(coords, {
+                contentHeader:'Событие!',
+                contentBody:'<p>Кто-то щелкнул по карте.</p>' +
+                    '<p>Координаты ' + [
+                    coords[0].toPrecision(6),
+                    coords[1].toPrecision(6)
+                    ].join(', ') + '</p>',
+                contentFooter:'<sup>Щелкните еще раз</sup>'
+            });
+            getW(coords[1], coords[0], tit);
+        }
+        else {
+            myMap.balloon.close();
+        }
+        });
+
+        // Скрываем хинт при открытии балуна.
+        myMap.events.add('balloonopen', function (e) {
+        myMap.hint.close();
+        });
+        } //key c1ae969295473bf23abb9854d63dc1ee
+
+        async function getW (lon, lat, tit){
+            const ie = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=c1ae969295473bf23abb9854d63dc1ee`, {mode: 'cors'});
+            const j = await ie.json()
+            let place = ''
+            if(j.name){
+                place += j.name;
+            } else {
+                place += "Unknown";
+            }
+            if(j.sys.country){
+                let ctr = await fetch(`https://restcountries.com/v3.1/alpha/${j.sys.country.toLowerCase()}`, {mode: 'cors'});
+                ctr = await ctr.json();
+                place = place + ', ' + ctr[0].name.common;
+            } 
+            tit.textContent = place;
+};
+    </script>
+</body>
+</html> 
