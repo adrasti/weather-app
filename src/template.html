@@ -8,8 +8,8 @@
     <base href=".">
 </head>
 <body>
-    <div class="page">
-        <div class="text"></div>
+    <div id="page" class = "cloudy">
+        <div class="text">Click the map!</div>
         <div class="main">
             <div class="cont">
                 <div class="maps">
@@ -58,28 +58,50 @@
     </div>
     <script type="text/javascript" src="https://api-maps.yandex.ru/2.1/?apikey=d2fcfcfc-0a1f-4563-b55d-8386a2084304&lang=en_RU"></script>
     <script>
-        ymaps.ready(init);
-        function init(){
-            // Создание карты.
-        myMap = new ymaps.Map("map", {
-        center: [55.7558, 37.6173],
-        zoom: 2
-        }, {
-        balloonMaxWidth: 200,
-        searchControlProvider: 'yandex#search'
+        try {
+            ymaps
+        } catch {
+            textColor('red');
+            document.querySelector(".text").textContent = "API error";
+        }
+        window.addEventListener("resize", () => {
+            if(getWidth() <= 800){
+                document.querySelector("#map").style.height = `${getHeight() * 0.7}px`;
+                document.querySelector("#map").style.width = `${getWidth() * 0.45}px`;
+            }
         });
+        if(getWidth() <= 800){
+                document.querySelector("#map").style.height = `${getHeight() * 0.7}px`;
+                document.querySelector("#map").style.width = `${getWidth() * 0.45}px`;
+        }
+        try {
+            ymaps.ready(init);
+        } catch {
+            textColor('red');
+            document.querySelector(".text").textContent = "API error";
+        }
+        function init(){
+                // Создание карты.
+            myMap = new ymaps.Map("map", {
+            center: [55.7558, 37.6173],
+            zoom: 4
+            }, {
+                balloonMaxWidth: 1500,
+                balloonMaxHeight: 100,
+                searchControlProvider: 'yandex#search'
+            });
 
-        myMap.options.set('dragCursor', 'pointer');
-        // Обработка события, возникающего при щелчке
-        // левой кнопкой мыши в любой точке карты.
-        // При возникновении такого события откроем балун.
-        myMap.events.add('click', function (e) {
-        if (!myMap.balloon.isOpen()) {
-            var coords = e.get('coords');
+            myMap.options.set('dragCursor', 'pointer');
+            // Обработка события, возникающего при щелчке
+            // левой кнопкой мыши в любой точке карты.
+            // При возникновении такого события откроем балун.
+            myMap.events.add('click', function (e) {
+            if (!myMap.balloon.isOpen()) {
+                var coords = e.get('coords');
             myMap.balloon.open(coords, {
-                contentHeader:'Событие!',
-                contentBody:'<p>Кто-то щелкнул по карте.</p>' +
-                    '<p>Координаты ' + [
+                contentHeader:'',
+                contentBody:
+                    '<p id = "coord">' + [
                     coords[0].toPrecision(6),
                     coords[1].toPrecision(6)
                     ].join(', ') + '</p>',
@@ -99,45 +121,111 @@
         } //key c1ae969295473bf23abb9854d63dc1ee
 
         async function getW (lon, lat){
-            const ie = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=c1ae969295473bf23abb9854d63dc1ee`, {mode: 'cors'});
-            const j = await ie.json()
-            const tit = document.querySelector(".text");
-            let place = ''
-            if(j.name){
-                place += j.name;
-            } else {
-                place += "Unknown";
-            }
-            if(j.sys.country){
-                let ctr = await fetch(`https://restcountries.com/v3.1/alpha/${j.sys.country.toLowerCase()}`, {mode: 'cors'});
-                ctr = await ctr.json();
-                place = place + ', ' + ctr[0].name.common;
-            } 
-            tit.textContent = place;
-            document.querySelector("#tempnum").textContent = String((Number(j.main.temp) - 273.15).toFixed(1)) + "°";
-            document.querySelector("#state").textContent = j.weather[0].description;
+            Promise.race( [
+                Promise.all( [
+                    fetch(`http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=c1ae969295473bf23abb9854d63dc1ee`, {mode: 'cors'}),
+                    fetch(`https://geocode-maps.yandex.ru/1.x/?format=json&apikey=d2fcfcfc-0a1f-4563-b55d-8386a2084304&geocode=${lon},${lat}&lang=en_RU`, {mode: 'cors'})
+                ] ),			
+                timeoutPromise( 3000 )
+            ] )
+            .then(async function(m) {
+                const ie = await m[0];
+                const ye = await m[1];
 
+                const j = await ie.json();
+                const ymdata = await ye.json();
+
+                updateDOM(j, ymdata);
+            }).catch((e)=>{
+                if(e === "Timeout!"){
+                    console.error("API TIMEOUT");
+                } else {
+                    console.error("REJECTED BY API")
+                }
+                textColor('red');
+                document.querySelector(".text").textContent = "API error";
+            })
+        };
+        function timeoutPromise(delay) {
+            return new Promise( function(resolve,reject){
+                setTimeout( function(){
+                    reject( "Timeout!" );
+                }, delay );
+            } );
+        }
+        function convertTime(unixTime, tZone){
+            var myDate = new Date( (unixTime + tZone - 10800)*1000);
+            return myDate.toString().slice(16, 24);
+        }
+        function textColor(col){
+            document.querySelector('.text').style.color = col;
+        }
+        function getWidth() {
+            let b = window.innerWidth && document.documentElement.clientWidth ? Math.min(window.innerWidth, document.documentElement.clientWidth) : 
+            window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
+            return b;
+        }
+        function getHeight() {
+            let b = window.innerHeight && document.documentElement.clientHeight ? Math.min(window.innerHeight, document.documentElement.clientHeight) : 
+            window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight;
+            return b;
+        }
+        async function updateDOM(j, y){
             let zone;
+            const tit = document.querySelector(".text");
             if(Number(j.timezone) >= 0){
                 zone = 'GMT+' + String((Number(j.timezone) / 3600).toFixed(0));
             } else {
                 zone = 'GMT' + String((Number(j.timezone) / 3600).toFixed(0));
             }
-
-
-
+            let place = ''
+            if(j.name){
+                place += j.name;
+            }
+            const ctr = y.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.Address.Components[0].name;
+            if(ctr){
+                if(place){
+                    place = place + ', ' + ctr;
+                } else {
+                    place = ctr;
+                }
+            } 
+            tit.textContent = place;
+            document.querySelector("#tempnum").textContent = String((Number(j.main.temp) - 273.15).toFixed(1)) + "°";
+            document.querySelector("#state").textContent = j.weather[0].description;
             document.querySelector("#sunr p").textContent = convertTime(j.sys.sunrise, j.timezone);
             document.querySelector("#suns p").textContent = convertTime(j.sys.sunset, j.timezone);
-            document.querySelector("#wind p").textContent = String(j.wind.speed) + " meter/sec";
+            document.querySelector("#wind p").textContent = String(j.wind.speed) + " m/sec";
             document.querySelector("#flslike p").textContent = String((Number(j.main.feels_like) - 273.15).toPrecision(3)) + "°";
             document.querySelector("#pres p").textContent = String((Number(j.main.pressure) * 0.02953).toFixed(1)) + " inHg"
             document.querySelector("#humid p").textContent = String(j.main.humidity) + "%";
             document.querySelector("#tzone p").textContent = zone;
             document.querySelector("#vbility p").textContent = String((Number(j.visibility) / 1000).toFixed(1)) + " km";
-        };
-        function convertTime(unixTime, tZone){
-            var myDate = new Date( (unixTime + tZone - 10800)*1000);
-            return myDate.toString().slice(16, 24);
+
+            let id = String(j.weather[0].id);
+            const page =  document.querySelector("#page");
+            textColor('black');
+            if(id[0] == '8'){
+                if(id[2] == 0){
+                    page.className = "";
+                    page.classList.add("clear");
+                } else if(id[2] == '4'){
+                    page.className = "";
+                    page.classList.add("overcast");
+                    textColor('white');
+                } else {
+                   page.className = "";
+                   page.classList.add("cloudy");
+                }
+            } else if(id[0] == '5'){
+                page.className = "";
+                page.classList.add("rainy");
+                textColor('white');
+            } else if(id[0] == '3'){
+                page.className = "";
+                page.classList.add("drizzle");
+            }
+            
         }
 
     </script>

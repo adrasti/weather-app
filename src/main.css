@@ -11,7 +11,7 @@ h1, h2, h3, h4, h5, p, figure, picture {
 
 p {
     text-align: center;
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 h3 {
@@ -21,28 +21,62 @@ h3 {
     color: #808080;
 }
 
-.page {
+#page {
     height: 100vh;
     width: 100vw;
     display: flex;
     flex-flow: column;
+    overflow: scroll;
+    transition: background-image 0.6s ease;
+}
+
+.overcast {
+    background-image: url(./assets/overcast.jpg);
+    background-repeat: no-repeat;
+    background-size:cover;
+}
+
+.drizzle {
+    background-image: url(./assets/drizzle.jpg);
+    background-repeat: no-repeat;
+    background-size:cover;
+}
+
+.cloudy{
+    background-image: url(./assets/cloudy1.jpg);
+    background-repeat: no-repeat;
+    background-size:cover;
+}
+
+.clear{
+    background-image: url(./assets/clear.jpg);
+    background-repeat: no-repeat;
+    background-size:cover;
+}
+
+
+.rainy{
+    background-image: url(./assets/rainy.jpg);
+    background-repeat: no-repeat;
+    background-size:cover;
 }
 
 .text {
     display: flex;
     width: 100%;
-    flex: 0 1 10vh;
+    flex: 0 1 5vh;
     justify-content: center;
     align-items: center;
     font-size: 2rem;
     text-align: center;
+    margin-top: 1rem;
 
 }
 
 .main {
     display: flex;
     flex-flow: column;
-    flex: 1 1 auto;
+    flex: 0 1 80vh;
 }
 
 .cont {
@@ -52,11 +86,51 @@ h3 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+    align-items: center;
 }
+
+#map {
+    width: 97%;
+    height: 77%;
+}
+
+#tempnum {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    margin-left: 0.7rem;
+}
+
+.weather {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 2fr 3fr 3fr 3fr 3fr;
+    grid-template-areas: 
+    "temp temp" 
+    "sunr suns"
+    "wind flslike"
+    "pres humid"
+    "tzone vbility";
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 5%;
+    margin-left: 20px;
+    gap: 5px;
+    margin-right: 10px;
+}
+
+.temp {
+    grid-area: temp;
+    margin-top: 15px;
+}
+
 
 @media (min-width: 800px) {
     .cont {
         margin: 0 5% 0 5%;
+        align-items: unset;
     }
     #map {
         width: 90%;
@@ -66,12 +140,27 @@ h3 {
         flex: 0 1 15vh;
         font-size: 2.5rem;
     }
+    p {
+        font-size: 1.2rem;
+    }
+    #tempnum{
+        font-size: 2rem;
+    }
+    .main {
+        flex: 1 1 auto;
+    }
+    .temp {
+        margin-top: 0;
+    }
+    .weather{
+        gap: 0;
+    }
 }
 
 @media (min-width: 1300px) {
     #map {
-        width: 80%;
-        height: 80%;
+        width: 97%;
+        height: 97%;
     }
     .text {
         font-size: 3rem;
@@ -101,13 +190,11 @@ h3 {
     "wind flslike"
     "pres humid"
     "tzone vbility";
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 5%;
+    margin-left: 20px;
 }
 
-#tempnum {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    margin-left: 0.7rem;
-}
 
 .temp {
     grid-area: temp;
@@ -115,11 +202,6 @@ h3 {
 
 .desc {
     grid-area: desc;
-}
-
-#map {
-    width: 97%;
-    height: 97%;
 }
 
 #sunr{
